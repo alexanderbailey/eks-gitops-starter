@@ -2,10 +2,10 @@ name: infra
 
 on:
   pull_request:
-    paths: ["infra/**", ".github/workflows/infra.yml"]
+    paths: ["infra/**", ".trivyignore", ".github/workflows/infra.yml"]
   push:
     branches: [main]
-    paths: ["infra/**"]
+    paths: ["infra/**", ".trivyignore", ".github/workflows/infra.yml"]
 
 permissions:
   contents: read

@@ -1,0 +1,20 @@
+# Trivy IaC ignore list. Each entry is a deliberate, documented starter default —
+# not an oversight. Keeping them here (rather than loosening the scan severity)
+# means Trivy still fails the build on any NEW high/critical misconfiguration.
+
+# Public EKS API endpoint, reachable from 0.0.0.0/0.
+# ON by default so you can run `kubectl`/Argo CD against the cluster with no
+# bastion or VPN while evaluating this repo. Lock it down for real use by setting
+# `cluster_endpoint_public_access = false` (or restricting the allowed CIDRs) in
+# infra/environments/*/*.auto.tfvars.
+AVD-AWS-0040
+AWS-0040
+AVD-AWS-0041
+AWS-0041
+
+# Unrestricted egress from the cluster security group.
+# This is the Kubernetes norm — nodes must reach image registries, AWS APIs, etc.
+# Constrain east-west/egress traffic with Kubernetes NetworkPolicies per workload
+# rather than at the node security group.
+AVD-AWS-0104
+AWS-0104
