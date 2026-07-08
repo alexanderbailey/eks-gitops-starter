@@ -31,7 +31,7 @@ variable "gitops_repo_ssh_key" {
   sensitive   = true
 }
 
-# tflint-ignore: terraform_unused_declarations (setup.sh writes this into the generated tfvars; the GitOps layer consumes it)
+# tflint-ignore: terraform_unused_declarations
 variable "enable_tailscale" {
   description = "Consumed by the GitOps layer (bootstrap), not by Terraform. Declared here so setup.sh can write one tfvars file."
   type        = bool
