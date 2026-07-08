@@ -117,7 +117,10 @@ done
 
 # Snapshot the working tree (tracked + untracked, minus .gitignore) into a
 # detached commit via a temporary index — the real index/HEAD is untouched.
-TMP_INDEX="$(mktemp)"
+# The index path must not exist yet (git rejects an empty file as a bad index),
+# so put it inside a fresh temp dir rather than using `mktemp` directly.
+SNAP_DIR="$(mktemp -d)"
+TMP_INDEX="${SNAP_DIR}/index"
 GIT_INDEX_FILE="$TMP_INDEX" git -C "$ROOT" add -A
 SNAP_TREE="$(GIT_INDEX_FILE="$TMP_INDEX" git -C "$ROOT" write-tree)"
 # Identity is set explicitly so this works on a fresh CI runner with no git config.
@@ -126,7 +129,7 @@ SNAP_COMMIT="$(
   GIT_COMMITTER_NAME=kind-up GIT_COMMITTER_EMAIL=kind-up@localhost \
   git -C "$ROOT" commit-tree "$SNAP_TREE" -m 'kind-up snapshot'
 )"
-rm -f "$TMP_INDEX"
+rm -rf "$SNAP_DIR"
 git -C "$ROOT" push -f "git://127.0.0.1:${GIT_PORT}/repo.git" "${SNAP_COMMIT}:refs/heads/main"
 
 # --------------------------------------------------------------- 4. app-of-apps
