@@ -20,6 +20,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+    # No CreateNamespace: the apps AppProject forbids cluster-scoped resources;
+    # the namespace is pre-created in bootstrap/base/cluster_setup.
   revisionHistoryLimit: 3

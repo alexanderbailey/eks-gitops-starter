@@ -10,4 +10,5 @@ kind: Kustomization
 resources:
   - appproject-platform.yaml
   - appproject-apps.yaml
+  - namespaces.yaml
   - cluster-secret-store.yaml

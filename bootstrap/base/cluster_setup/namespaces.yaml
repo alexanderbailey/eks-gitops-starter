@@ -1,0 +1,18 @@
+# Namespaces for the demo apps. Created here (by the app-of-apps, which runs in
+# the privileged `default` project) rather than by the apps themselves — the
+# `apps` AppProject forbids cluster-scoped resources, so the app Applications
+# can't use CreateNamespace. This keeps the apps least-privileged.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backend-podinfo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend-nginx
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db-service
