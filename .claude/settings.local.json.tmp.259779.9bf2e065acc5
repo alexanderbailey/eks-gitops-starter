@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /home/alex/work/eks-gitops-starter status --short)",
+      "Bash(git -C /home/alex/work/eks-gitops-starter log --oneline -10)",
+      "Bash(command -v python3 yq)",
+      "Bash(python3 -)",
+      "Bash(chmod +x scripts/kind-up.sh scripts/kind-wait.sh)",
+      "Bash(bash -n scripts/kind-up.sh)",
+      "Bash(bash -n scripts/kind-wait.sh)",
+      "Bash(awk '{print $1, $NF}')",
+      "Bash(git status *)",
+      "Bash(git branch *)",
+      "Bash(git add *)"
+    ]
+  }
+}

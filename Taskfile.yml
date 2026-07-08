@@ -1,0 +1,90 @@
+# Task runner: https://taskfile.dev
+# Defaults to OpenTofu; override with `TF=terraform task ...`.
+version: "3"
+
+vars:
+  # Prefer tofu, fall back to terraform.
+  TF: '{{.TF | default (env "TF") | default "tofu"}}'
+  ENV: '{{.ENV | default "dev"}}'
+  ENV_DIR: "infra/environments/{{.ENV}}"
+
+env:
+  KIND_CLUSTER: eks-gitops-starter
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  # ---------------------------------------------------------------- linting
+  lint:
+    desc: Run all static checks (fmt, tf validate, kustomize/kubeconform)
+    cmds:
+      - task: fmt-check
+      - task: infra:validate
+      - task: gitops:validate
+
+  fmt:
+    desc: Format Terraform/OpenTofu code
+    cmds:
+      - "{{.TF}} -chdir=infra fmt -recursive"
+
+  fmt-check:
+    desc: Check Terraform/OpenTofu formatting
+    cmds:
+      - "{{.TF}} -chdir=infra fmt -recursive -check"
+
+  # ---------------------------------------------------------------- infra
+  infra:validate:
+    desc: Validate every Terraform module and environment (no cloud access)
+    cmds:
+      - for: { var: TF_DIRS }
+        cmd: "{{.TF}} -chdir={{.ITEM}} init -backend=false -input=false >/dev/null && {{.TF}} -chdir={{.ITEM}} validate"
+    vars:
+      TF_DIRS:
+        sh: find infra -name '*.tf' -not -path '*/.terraform/*' -exec dirname {} \; | sort -u
+
+  infra:test:
+    desc: Run native `terraform test` on every module that has tests (mock providers, no cloud)
+    cmds:
+      - for: { var: TEST_DIRS }
+        cmd: "{{.TF}} -chdir={{.ITEM}} init -backend=false -input=false >/dev/null && {{.TF}} -chdir={{.ITEM}} test"
+    vars:
+      TEST_DIRS:
+        sh: find infra -type d -name tests -not -path '*/.terraform/*' -exec dirname {} \; | sort -u
+
+  infra:plan:
+    desc: "Plan an environment. Usage: task infra:plan ENV=dev"
+    dir: "{{.ENV_DIR}}"
+    cmds:
+      - "{{.TF}} init -input=false"
+      - "{{.TF}} plan -input=false"
+
+  infra:apply:
+    desc: "Apply an environment. Usage: task infra:apply ENV=dev"
+    dir: "{{.ENV_DIR}}"
+    cmds:
+      - "{{.TF}} init -input=false"
+      - "{{.TF}} apply -input=false"
+
+  # ---------------------------------------------------------------- gitops
+  gitops:validate:
+    desc: Build every Kustomize overlay and schema-validate with kubeconform
+    cmds:
+      - for: { var: OVERLAYS }
+        cmd: kustomize build "{{.ITEM}}" | kubeconform -strict -ignore-missing-schemas -summary
+    vars:
+      OVERLAYS:
+        sh: find bootstrap platform-addons apps -name kustomization.yaml -path '*overlays*' -exec dirname {} \; 2>/dev/null | sort -u
+
+  # ---------------------------------------------------------------- local e2e
+  kind-up:
+    desc: Stand up a local kind cluster with Argo CD and the app-of-apps
+    cmds:
+      - ./scripts/kind-up.sh
+
+  kind-down:
+    desc: Tear down the local kind cluster
+    cmds:
+      - kind delete cluster --name "$KIND_CLUSTER"

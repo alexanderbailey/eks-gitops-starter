@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Cluster-wide setup that must exist before (or alongside) any app:
+#   - AppProjects that fence what platform vs. app Applications may do
+#   - the ClusterSecretStore that External Secrets reads AWS Secrets Manager through
+#
+# The optional Tailscale operator lives in components/tailscale and is pulled
+# in per-overlay only when enabled (see that directory's README).
+resources:
+  - appproject-platform.yaml
+  - appproject-apps.yaml
+  - cluster-secret-store.yaml

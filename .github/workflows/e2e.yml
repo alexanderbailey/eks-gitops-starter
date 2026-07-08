@@ -1,0 +1,41 @@
+name: e2e
+
+on:
+  pull_request:
+    paths:
+      - "bootstrap/**"
+      - "platform-addons/**"
+      - "apps/**"
+      - "scripts/kind-up.sh"
+      - "scripts/kind-wait.sh"
+      - ".github/workflows/e2e.yml"
+  # Also run on demand — the kind spin-up is the slowest job.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kind-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # kind is not preinstalled on the runner (docker, kubectl and git are).
+      - name: Install kind
+        uses: helm/kind-action@v1
+        with:
+          install_only: true
+          version: v0.24.0
+
+      - name: Create kind cluster + Argo CD + app-of-apps
+        run: ./scripts/kind-up.sh --ci
+
+      - name: Wait for apps to become healthy
+        run: ./scripts/kind-wait.sh
+
+      - name: Dump cluster state on failure
+        if: failure()
+        run: |
+          kubectl -n argocd get applications.argoproj.io -o wide || true
+          kubectl get pods -A || true

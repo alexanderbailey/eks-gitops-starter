@@ -1,0 +1,10 @@
+# staging: point db-service at the RDS endpoint. PGHOST comes from
+# `terraform output rds_endpoint`; PGDATABASE matches the rds module's db_name.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+data:
+  PGHOST: REPLACE-with-rds-endpoint.eu-west-2.rds.amazonaws.com
+  PGPORT: "5432"
+  PGDATABASE: app

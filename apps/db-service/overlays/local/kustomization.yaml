@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# local (kind): same as dev — ephemeral in-cluster Postgres with a static
+# Secret. The ESO → Secrets Manager path (staging/prod) is schema-validated by
+# kubeconform and can be exercised against LocalStack; see docs/local-testing.md.
+resources:
+  - ../dev

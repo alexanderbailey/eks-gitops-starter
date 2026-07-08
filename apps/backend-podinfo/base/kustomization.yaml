@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# All resources land in the backend-podinfo namespace. The namespace itself is
+# NOT a managed resource here — the apps AppProject forbids cluster-scoped
+# objects — so the child Application creates it via CreateNamespace=true.
+namespace: backend-podinfo
+resources:
+  - deployment.yaml
+  - service.yaml

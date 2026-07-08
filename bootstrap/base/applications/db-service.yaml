@@ -1,0 +1,26 @@
+# db-service: the stateful-with-secrets path. Its DB credentials arrive as a
+# plain Secret synced by External Secrets from the aws-secrets-manager
+# ClusterSecretStore (ephemeral in-cluster Postgres in dev, RDS in staging/prod).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: db-service
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/your-org/eks-gitops-starter.git
+    targetRevision: main
+    path: apps/db-service/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: db-service
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

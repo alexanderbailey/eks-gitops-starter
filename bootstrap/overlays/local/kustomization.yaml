@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# The local (kind) plane. kind-up.sh serves this checkout from an in-cluster git
+# server and points the app-of-apps here, so every child Application must pull
+# from that same in-cluster repo (not your GitHub fork) and use the local
+# overlays. There is no ESO on kind, so the AWS ClusterSecretStore is removed.
+patches:
+  # Drop the AWS Secrets Manager store — no External Secrets controller locally.
+  - target:
+      kind: ClusterSecretStore
+      name: aws-secrets-manager
+    patch: |-
+      $patch: delete
+      apiVersion: external-secrets.io/v1beta1
+      kind: ClusterSecretStore
+      metadata:
+        name: aws-secrets-manager
+
+  # Repoint each child Application at the in-cluster repo + its local overlay.
+  - target:
+      kind: Application
+      name: platform-addons
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: git://git-server.default.svc.cluster.local:9418/repo.git
+      - op: replace
+        path: /spec/source/path
+        value: platform-addons/overlays/local
+  - target:
+      kind: Application
+      name: backend-podinfo
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: git://git-server.default.svc.cluster.local:9418/repo.git
+      - op: replace
+        path: /spec/source/path
+        value: apps/backend-podinfo/overlays/local
+  - target:
+      kind: Application
+      name: frontend-nginx
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: git://git-server.default.svc.cluster.local:9418/repo.git
+      - op: replace
+        path: /spec/source/path
+        value: apps/frontend-nginx/overlays/local
+  - target:
+      kind: Application
+      name: db-service
+    patch: |-
+      - op: replace
+        path: /spec/source/repoURL
+        value: git://git-server.default.svc.cluster.local:9418/repo.git
+      - op: replace
+        path: /spec/source/path
+        value: apps/db-service/overlays/local

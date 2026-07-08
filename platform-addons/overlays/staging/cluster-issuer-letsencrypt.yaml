@@ -1,0 +1,27 @@
+# Let's Encrypt STAGING issuer. Named `letsencrypt` (same as prod) so app
+# manifests reference one stable issuer name regardless of environment — only
+# the ACME server URL differs between overlays.
+#
+# HTTP01 solver routed through the ALB: cert-manager provisions a temporary,
+# internet-facing Ingress for each challenge (needs no extra IAM). The
+# production-grade alternative is a DNS01 Route53 solver, which requires a
+# cert-manager Pod Identity role — a documented extension, not wired here.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Set to a real address you control (ACME expiry notices go here).
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: alb
+            ingressTemplate:
+              metadata:
+                annotations:
+                  alb.ingress.kubernetes.io/scheme: internet-facing

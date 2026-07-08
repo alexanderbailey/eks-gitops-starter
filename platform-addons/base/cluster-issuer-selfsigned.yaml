@@ -1,0 +1,9 @@
+# A self-signed issuer for dev and local (kind) — TLS without an ACME round-trip
+# or a public endpoint. staging/prod add a real Let's Encrypt issuer alongside
+# this; apps pick the issuer by name via their cert-manager annotation.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}

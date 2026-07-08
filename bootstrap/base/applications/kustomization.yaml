@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# The child Applications the app-of-apps hands control to. Each points at a
+# component's dev overlay by default; staging/prod overlays repoint the path.
+#
+# repoURL uses the same `your-org` placeholder as .env.example / setup.sh —
+# when you fork, find/replace it across the repo (one sweep does both planes).
+resources:
+  - platform-addons.yaml
+  - backend-podinfo.yaml
+  - frontend-nginx.yaml
+  - db-service.yaml

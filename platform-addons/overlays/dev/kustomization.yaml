@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# dev: self-signed TLS (from base) + ingress-nginx. No public load balancer —
+# reach services via `kubectl port-forward` or Tailscale (see .env / arch doc).
+resources:
+  - ../../base
+  - ingress-nginx.yaml

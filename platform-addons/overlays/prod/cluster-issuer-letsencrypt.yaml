@@ -1,0 +1,22 @@
+# Let's Encrypt PRODUCTION issuer. Same name (`letsencrypt`) and shape as the
+# staging overlay's issuer — only the ACME server URL is the trusted production
+# endpoint. Mind the rate limits: don't point flapping/test hostnames here.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Set to a real address you control (ACME expiry notices go here).
+    email: admin@example.com
+    privateKeySecretRef:
+      name: letsencrypt-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: alb
+            ingressTemplate:
+              metadata:
+                annotations:
+                  alb.ingress.kubernetes.io/scheme: internet-facing

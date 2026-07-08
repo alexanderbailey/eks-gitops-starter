@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# dev: route through ingress-nginx, no public hostname or TLS (reach it via
+# port-forward / Tailscale).
+patches:
+  - target:
+      kind: Ingress
+      name: frontend-nginx
+    patch: |-
+      - op: add
+        path: /spec/ingressClassName
+        value: nginx

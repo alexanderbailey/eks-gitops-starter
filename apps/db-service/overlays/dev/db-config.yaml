@@ -1,0 +1,9 @@
+# dev points db-service at the in-cluster Postgres Service (postgres.db-service).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+data:
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGDATABASE: demo

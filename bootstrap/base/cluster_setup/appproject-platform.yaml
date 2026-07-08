@@ -1,0 +1,25 @@
+# The "platform" project: cluster-wide add-ons (cert-manager ClusterIssuers,
+# ingress controller, External DNS config, ...). These legitimately need to
+# create cluster-scoped resources, so this project is deliberately broad.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  finalizers:
+    # Cascade-delete the project's Applications if the project is removed.
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Cluster platform add-ons (cert-manager, ingress, external-dns).
+  # Restrict to your fork once you know its URL; '*' keeps the starter portable.
+  sourceRepos:
+    - "*"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

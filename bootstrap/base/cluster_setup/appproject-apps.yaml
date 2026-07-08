@@ -1,0 +1,27 @@
+# The "apps" project: the demo workloads. Least-privilege on purpose — apps may
+# only deploy into their own namespaces and may NOT create cluster-scoped
+# resources. This is the boundary you extend (or split further) per team; see
+# docs/scaling-to-teams.md.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Demo applications (backend-podinfo, frontend-nginx, db-service).
+  sourceRepos:
+    - "*"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: backend-podinfo
+    - server: https://kubernetes.default.svc
+      namespace: frontend-nginx
+    - server: https://kubernetes.default.svc
+      namespace: db-service
+  # No cluster-scoped resources for application workloads.
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

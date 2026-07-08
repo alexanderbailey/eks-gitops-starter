@@ -1,0 +1,49 @@
+# db-service — a stand-in for a workload that needs database credentials. It
+# takes its connection settings from two sources, wired identically in every
+# environment; only where they COME FROM changes per overlay:
+#   - Secret    db-credentials  (PGUSER, PGPASSWORD)  — dev: static; staging/prod: ESO
+#   - ConfigMap db-config       (PGHOST, PGPORT, PGDATABASE)
+# It just proves it can reach the database (pg_isready); swap in your real app.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-service
+  labels:
+    app: db-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-service
+  template:
+    metadata:
+      labels:
+        app: db-service
+    spec:
+      containers:
+        - name: db-service
+          image: postgres:16-alpine
+          envFrom:
+            - secretRef:
+                name: db-credentials
+            - configMapRef:
+                name: db-config
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "db-service: connecting as $PGUSER to $PGHOST:$PGPORT/$PGDATABASE"
+              while true; do
+                pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" || echo "database not ready yet"
+                sleep 30
+              done
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -h \"$PGHOST\" -p \"$PGPORT\" -U \"$PGUSER\" -d \"$PGDATABASE\""]
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi

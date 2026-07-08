@@ -1,0 +1,40 @@
+# ingress-nginx for dev and local (kind). On AWS staging/prod the AWS Load
+# Balancer Controller (installed by Terraform when enable_alb=true) provides the
+# `alb` IngressClass instead, so those overlays don't install a controller.
+#
+# Delivered as a nested Argo CD Application (Helm) — same pattern as the other
+# add-ons. The chart creates the `nginx` IngressClass; apps select it per overlay.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    # Pinned; bump deliberately (see PLAN.md notes on versions).
+    targetRevision: 4.11.3
+    helm:
+      values: |
+        controller:
+          ingressClassResource:
+            name: nginx
+            default: true
+          service:
+            # dev keeps traffic internal — no cloud load balancer is created.
+            # The local (kind) overlay swaps this for a NodePort in P5.
+            type: ClusterIP
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

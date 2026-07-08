@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# prod: real ACME certs (Let's Encrypt PRODUCTION endpoint — trusted certs, rate
+# limited). Ingress is ALB (from Terraform); self-signed issuer from base stays
+# available too.
+resources:
+  - ../../base
+  - cluster-issuer-letsencrypt.yaml

@@ -1,0 +1,24 @@
+# backend-podinfo: a stateless API (podinfo) — the "service other things call".
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-podinfo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/your-org/eks-gitops-starter.git
+    targetRevision: main
+    path: apps/backend-podinfo/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: backend-podinfo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

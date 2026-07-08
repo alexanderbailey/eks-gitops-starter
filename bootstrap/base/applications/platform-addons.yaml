@@ -1,0 +1,30 @@
+# Platform add-ons delivered via GitOps: cert-manager ClusterIssuer(s) and the
+# ingress layer (ingress-nginx locally / ALB values on AWS). The controllers
+# themselves are installed by Terraform; this is their in-cluster config.
+# Runs in the "platform" project because it creates cluster-scoped resources.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-addons
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/your-org/eks-gitops-starter.git
+    targetRevision: main
+    path: platform-addons/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    # ClusterIssuers are cluster-scoped and the ingress controller is delivered
+    # as a nested Application (which lives in argocd), so this is the default
+    # namespace for the handful of namespaced resources that don't set their own.
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

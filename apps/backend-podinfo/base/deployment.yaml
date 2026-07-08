@@ -1,0 +1,38 @@
+# podinfo — a small stateless HTTP API standing in for "the service other
+# things call". Internal only (ClusterIP); frontend-nginx reaches it by DNS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-podinfo
+  labels:
+    app: backend-podinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-podinfo
+  template:
+    metadata:
+      labels:
+        app: backend-podinfo
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.7.0
+          ports:
+            - name: http
+              containerPort: 9898
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 64Mi

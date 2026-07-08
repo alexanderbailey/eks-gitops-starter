@@ -1,0 +1,67 @@
+name: infra
+
+on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/infra.yml"]
+  push:
+    branches: [main]
+    paths: ["infra/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.8.8"
+
+      - name: Format check
+        run: tofu -chdir=infra fmt -recursive -check
+
+      - name: Validate all modules and environments
+        run: |
+          set -euo pipefail
+          # every directory that contains .tf files
+          dirs=$(find infra -name '*.tf' -not -path '*/.terraform/*' \
+                   -exec dirname {} \; | sort -u)
+          for d in $dirs; do
+            echo "::group::validate $d"
+            tofu -chdir="$d" init -backend=false -input=false >/dev/null
+            tofu -chdir="$d" validate
+            echo "::endgroup::"
+          done
+
+      - name: Unit tests (mock providers)
+        run: |
+          set -euo pipefail
+          test_dirs=$(find infra -type d -name tests -not -path '*/.terraform/*' \
+                        -exec dirname {} \; | sort -u)
+          for d in $test_dirs; do
+            echo "::group::test $d"
+            tofu -chdir="$d" init -backend=false -input=false >/dev/null
+            tofu -chdir="$d" test
+            echo "::endgroup::"
+          done
+
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: config
+          scan-ref: infra/
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: tflint
+        uses: terraform-linters/setup-tflint@v4
+      - run: |
+          tflint --init
+          tflint --recursive --chdir infra

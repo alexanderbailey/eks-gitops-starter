@@ -1,0 +1,9 @@
+# prod: point db-service at the RDS endpoint (from `terraform output rds_endpoint`).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+data:
+  PGHOST: REPLACE-with-rds-endpoint.eu-west-2.rds.amazonaws.com
+  PGPORT: "5432"
+  PGDATABASE: app

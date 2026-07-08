@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Config for the cluster's platform layer. The controllers themselves
+# (cert-manager, and on AWS the ALB controller) are installed by Terraform;
+# what lives here is their in-cluster configuration, delivered via GitOps:
+#   - the self-signed ClusterIssuer (dev/local TLS; harmless where unused)
+#   - per-env: a real ACME issuer and/or the ingress-nginx controller (overlays)
+resources:
+  - cluster-issuer-selfsigned.yaml

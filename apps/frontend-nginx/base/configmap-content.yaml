@@ -1,0 +1,17 @@
+# The static page. It calls /api/ (proxied to backend-podinfo) to prove the
+# frontend → backend wiring end to end.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-content
+data:
+  index.html: |
+    <!doctype html>
+    <title>eks-gitops-starter</title>
+    <h1>frontend-nginx</h1>
+    <p>Backend says: <code id="out">loading…</code></p>
+    <script>
+      fetch('/api/').then(r => r.json())
+        .then(d => { document.getElementById('out').textContent = d.message || JSON.stringify(d); })
+        .catch(e => { document.getElementById('out').textContent = 'error: ' + e; });
+    </script>

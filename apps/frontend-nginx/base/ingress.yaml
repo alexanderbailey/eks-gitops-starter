@@ -1,0 +1,17 @@
+# Base Ingress with no class or host — overlays set the ingressClassName
+# (nginx on dev/local, alb on staging/prod), the hostname, and TLS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-nginx
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-nginx
+                port:
+                  number: 80

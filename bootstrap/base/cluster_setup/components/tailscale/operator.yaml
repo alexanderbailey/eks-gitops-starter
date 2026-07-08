@@ -1,0 +1,36 @@
+# The Tailscale operator itself, installed from its Helm chart as an Argo CD
+# Application (same pattern as the other platform add-ons). It reads its OAuth
+# client from the operator-oauth Secret that oauth-externalsecret.yaml syncs,
+# so no credentials are passed through Helm values here.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://pkgs.tailscale.com/helmcharts
+    chart: tailscale-operator
+    # Pinned; bump deliberately (see PLAN.md notes on versions).
+    targetRevision: 1.78.1
+    helm:
+      values: |
+        # Consume the ESO-synced Secret instead of templating one from values.
+        oauthSecretVolume:
+          secret:
+            secretName: operator-oauth
+        operatorConfig:
+          hostname: eks-gitops-starter
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

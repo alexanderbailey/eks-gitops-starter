@@ -1,0 +1,14 @@
+# Optional Tailscale operator — private access to in-cluster services without
+# public ingress. A Kustomize *component*, so it's off unless an overlay opts in:
+#
+#   # in bootstrap/overlays/<env>/kustomization.yaml
+#   components:
+#     - ../../base/cluster_setup/components/tailscale
+#
+# setup.sh adds that line when ENABLE_TAILSCALE=true (see .env.example).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - namespace.yaml
+  - oauth-externalsecret.yaml
+  - operator.yaml

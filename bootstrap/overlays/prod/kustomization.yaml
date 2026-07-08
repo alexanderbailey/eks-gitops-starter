@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+# Repoint every child Application from its dev overlay to the prod overlay.
+patches:
+  - target:
+      kind: Application
+      name: platform-addons
+    patch: |-
+      - op: replace
+        path: /spec/source/path
+        value: platform-addons/overlays/prod
+  - target:
+      kind: Application
+      name: backend-podinfo
+    patch: |-
+      - op: replace
+        path: /spec/source/path
+        value: apps/backend-podinfo/overlays/prod
+  - target:
+      kind: Application
+      name: frontend-nginx
+    patch: |-
+      - op: replace
+        path: /spec/source/path
+        value: apps/frontend-nginx/overlays/prod
+  - target:
+      kind: Application
+      name: db-service
+    patch: |-
+      - op: replace
+        path: /spec/source/path
+        value: apps/db-service/overlays/prod

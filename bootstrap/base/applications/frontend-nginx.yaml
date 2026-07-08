@@ -1,0 +1,25 @@
+# frontend-nginx: the public-facing UI that calls backend-podinfo. Its Ingress
+# is what the ingress controller (nginx local / ALB on AWS) fronts.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/your-org/eks-gitops-starter.git
+    targetRevision: main
+    path: apps/frontend-nginx/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frontend-nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3

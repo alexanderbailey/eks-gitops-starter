@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Everything Argo CD's app-of-apps applies to bootstrap an environment:
+#   - AppProjects (the RBAC boundary between platform and apps)  cluster_setup/
+#   - the AWS Secrets Manager ClusterSecretStore (ESO)           cluster_setup/
+#   - child Applications for platform-addons + the demo apps     applications/
+#
+# The child Applications here point at each component's `overlays/dev` path —
+# dev is the default. The staging/prod overlays (../overlays/<env>) repoint
+# them at their own environment.
+resources:
+  - cluster_setup
+  - applications

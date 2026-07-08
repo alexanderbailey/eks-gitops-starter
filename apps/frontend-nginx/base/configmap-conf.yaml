@@ -1,0 +1,22 @@
+# nginx server config: serve the static page and reverse-proxy /api/ to the
+# backend-podinfo Service (cross-namespace, by cluster DNS). The unprivileged
+# nginx image listens on 8080 as a non-root user.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-conf
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+
+      location / {
+        root  /usr/share/nginx/html;
+        index index.html;
+      }
+
+      location /api/ {
+        proxy_pass http://backend-podinfo.backend-podinfo.svc.cluster.local:9898/;
+      }
+    }
