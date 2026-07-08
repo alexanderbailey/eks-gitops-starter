@@ -6,6 +6,20 @@ mock_provider "aws" {
       json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}"
     }
   }
+  # Computed ARNs must be real ARNs, or downstream validation (policy_arn on
+  # role attachments, role_arn on pod-identity associations) rejects the random
+  # mock strings. OpenTofu and Terraform generate different mock values, so pin
+  # these explicitly to keep the tests engine-independent.
+  mock_resource "aws_iam_role" {
+    defaults = {
+      arn = "arn:aws:iam::123456789012:role/mock-role"
+    }
+  }
+  mock_resource "aws_iam_policy" {
+    defaults = {
+      arn = "arn:aws:iam::123456789012:policy/mock-policy"
+    }
+  }
 }
 mock_provider "helm" {}
 mock_provider "kubernetes" {}

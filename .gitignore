@@ -23,6 +23,10 @@ infra/environments/*/zz_generated.auto.tfvars
 .vscode/
 .DS_Store
 
+# Claude Code local settings (user-specific; never commit)
+.claude/settings.local.json
+.claude/settings.local.json.*
+
 # Python (tooling, if any)
 __pycache__/
 *.py[cod]
