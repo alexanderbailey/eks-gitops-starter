@@ -9,7 +9,7 @@ on:
       - ".github/workflows/gitops.yml"
   push:
     branches: [main]
-    paths: ["bootstrap/**", "platform-addons/**", "apps/**"]
+    paths: ["bootstrap/**", "platform-addons/**", "apps/**", ".github/workflows/gitops.yml"]
 
 permissions:
   contents: read
