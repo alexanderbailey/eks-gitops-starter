@@ -23,7 +23,7 @@ CLUSTER="${KIND_CLUSTER:-eks-gitops-starter}"
 
 # Pinned; bump deliberately.
 ARGOCD_VERSION="v2.13.2"
-GIT_SERVER_IMAGE="alpine/git:2.45.2"
+GIT_SERVER_IMAGE="alpine:3.20"
 GIT_PORT=9418
 
 log() { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -86,11 +86,18 @@ spec:
           args:
             - |
               set -e
+              # 'git daemon' lives in the git-daemon subpackage, not plain git.
+              apk add --no-cache git-daemon
               git init --bare /srv/git/repo.git
               exec git daemon --reuseaddr --base-path=/srv/git --export-all \
                 --enable=receive-pack --listen=0.0.0.0 --port=${GIT_PORT} --verbose
           ports:
             - containerPort: ${GIT_PORT}
+          readinessProbe:
+            tcpSocket:
+              port: ${GIT_PORT}
+            initialDelaySeconds: 3
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -103,7 +110,12 @@ spec:
     - port: ${GIT_PORT}
       targetPort: ${GIT_PORT}
 EOF
-kubectl -n default rollout status deploy/git-server --timeout=180s
+if ! kubectl -n default rollout status deploy/git-server --timeout=180s; then
+  echo "git-server did not become ready; diagnostics:" >&2
+  kubectl -n default logs deploy/git-server --tail=50 >&2 || true
+  kubectl -n default describe pod -l app=git-server >&2 || true
+  exit 1
+fi
 
 # Port-forward so we can push from the host; clean it up on exit.
 kubectl -n default port-forward svc/git-server "${GIT_PORT}:${GIT_PORT}" >/dev/null 2>&1 &
